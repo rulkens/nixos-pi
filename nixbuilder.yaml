@@ -1,0 +1,110 @@
+# =======================================================
+# Lima VM: NixOS Builder
+# =======================================================
+# This VM exists for one purpose: to give your macOS Nix
+# installation a Linux environment it can delegate builds to.
+#
+# Usage:
+#   limactl create --name=nixbuilder nixbuilder.yaml
+#   limactl start nixbuilder
+#   limactl shell nixbuilder   # to get a shell inside the VM
+#   limactl stop nixbuilder    # to shut it down
+#   limactl delete nixbuilder  # to remove it entirely
+# =======================================================
+
+# -- VM Type --
+# "vz" uses Apple's native Virtualization.framework.
+# This is the fastest option on Apple Silicon Macs (macOS 13+).
+# The alternative is "qemu", which is slower but works everywhere.
+vmType: vz
+
+# -- Architecture --
+# "default" means match the host. Since your Mac is aarch64,
+# this VM will also be aarch64 — matching the Raspberry Pi 4.
+# No cross-compilation needed.
+arch: default
+
+# -- Resources --
+# Tune these based on your Mac's specs. Building a NixOS SD
+# image involves compiling the Linux kernel and many packages.
+cpus: 4
+memory: 8GiB
+disk: 60GiB
+
+# -- OS Image --
+# Lima will download this Ubuntu cloud image on first create.
+# Cloud images are minimal (~500MB), pre-configured for VMs,
+# and boot in seconds.
+images:
+  - location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+
+# -- Mounts --
+# These are directories shared between your Mac and the VM.
+# We mount your home directory (read-only) so the VM can
+# access your Nix project files, and /tmp/lima (writable)
+# so build outputs can be transferred back.
+mounts:
+  - location: "~"
+    writable: false
+  - location: "/tmp/lima"
+    writable: true
+
+# -- Containerd --
+# We don't need container runtimes. Disable them to save
+# resources and startup time.
+containerd:
+  system: false
+  user: false
+
+# -- Provisioning --
+# These scripts run inside the VM on first boot.
+# We use them to install the Nix package manager and
+# configure it for use as a remote builder.
+provision:
+  # First script runs as root — installs Nix and configures it
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+
+      # Skip if Nix is already installed (idempotent)
+      if [ -d /nix/store ]; then
+        echo "Nix already installed, skipping."
+        exit 0
+      fi
+
+      echo "=== Installing Nix package manager ==="
+
+      # The Nix installer expects $HOME to be set, but Lima's
+      # provisioning environment doesn't always provide it.
+      export HOME="/root"
+
+      # Install Nix in multi-user (daemon) mode.
+      # --daemon: installs as a system service so all users can use it
+      # --yes: skip interactive prompts
+      sh <(curl -L https://nixos.org/nix/install) --daemon --yes
+
+      echo "=== Configuring Nix ==="
+
+      mkdir -p /etc/nix
+
+      # Detect the Lima user — this is the non-root user that
+      # Lima created via cloud-init (matches your macOS username)
+      LIMA_USER=$(getent passwd 1000 | cut -d: -f1)
+
+      # Append settings to nix.conf using individual echo commands.
+      # (We avoid heredocs here because the YAML block scalar
+      # requires consistent indentation, and heredoc terminators
+      # at column 0 break the YAML parser.)
+      {
+        echo "experimental-features = nix-command flakes"
+        echo "substituters = https://cache.nixos.org"
+        echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        echo "trusted-users = root ${LIMA_USER}"
+      } >> /etc/nix/nix.conf
+
+      # Restart the Nix daemon to pick up the new config
+      systemctl restart nix-daemon
+
+      echo "=== Nix installation complete ==="
