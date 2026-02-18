@@ -63,8 +63,22 @@ if ! command -v python3 &> /dev/null; then
   exit 1
 fi
 
+if ! command -v determinate-nixd &> /dev/null; then
+  echo "ERROR: Determinate Nix is not installed."
+  echo "  Install it from https://docs.determinate.systems/"
+  exit 1
+fi
+
+if ! determinate-nixd version 2>&1 | grep -q "native-linux-builder"; then
+  echo "ERROR: Determinate Nix does not have 'native-linux-builder' enabled."
+  echo "  This feature is required to cross-compile aarch64-linux images on macOS."
+  echo "  See the README for setup instructions."
+  exit 1
+fi
+
 echo "  ✓ Nix found"
 echo "  ✓ python3 found"
+echo "  ✓ Determinate Nix (native-linux-builder enabled)"
 echo ""
 
 # ---------------------------------------------------------
