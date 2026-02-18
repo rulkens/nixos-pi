@@ -17,7 +17,6 @@ The image comes pre-configured with WiFi, SSH key authentication, and your chose
 - **macOS** on Apple Silicon (M1/M2/M3/M4)
 - **Homebrew** — [brew.sh](https://brew.sh)
 - **Nix** — install with `curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
-- **Lima** — install with `brew install lima`
 - An **SD card** (16GB or larger recommended)
 - An **SSH key** — if you don't have one, run `ssh-keygen -t ed25519`
 
@@ -36,7 +35,9 @@ nixos-rpi/
 └── config.json             Your hostname, WiFi, SSH key (gitignored, generated)
 ```
 
-## Step 1: Set up the build VM
+## Step 1A: Set up the build VM
+
+@NOTE: not needed any more if using determinate.systems nix
 
 NixOS images target `aarch64-linux`, which macOS can't build natively. We use a lightweight Linux VM via Lima to handle the build.
 
@@ -52,6 +53,47 @@ You can verify the VM is running:
 ```bash
 limactl list
 ```
+
+# Step 1B: Configure Determinate Systems Nix
+
+The build with determinate systems nix needs to have linux-builders installed.
+For this, you unfortunately create an account on Flakehub and send an email
+with your username to support@flakehub.com. They will enable linux-builders for you. This runs on Apple virtualization framework.
+
+Next up you need to make sure to give the builder enough memory (it runs on a
+virtual filesystem) to build the image. In my setup, 32GB was needed.
+
+For this you need to edit the file /etc/determinate/config.json (you might need to create it) and add the following:
+
+(see more info on https://docs.determinate.systems/determinate-nix/#determinate-nixd-configuration)
+
+```json
+{
+  "garbageCollector": {
+    "strategy": "automatic"
+  },
+  "builder": {
+    "state": "enabled",
+    "memoryBytes": 34359738368,
+    "cpuCount": 1
+  }
+}
+```
+
+And reboot the daemon:
+
+    sudo pkill determinate-nixd
+    determinate-nixd version
+
+When you see:
+
+The following features are enabled:
+
+- lazy-trees
+- native-linux-builder <----- THIS SHOULD BE PRESENT
+- parallel-evaluation
+
+You are good to go for the next step!
 
 ## Step 2: Build the image
 
@@ -86,9 +128,9 @@ Look for your SD card — it will be something like `/dev/disk4`. Be careful to 
 Unmount, flash, and eject:
 
 ```bash
-diskutil unmountDisk /dev/diskN
-sudo dd if=artifacts/rpi.img of=/dev/rdiskN bs=4m status=progress
-diskutil eject /dev/diskN
+diskutil unmountDisk /dev/disk4
+sudo dd if=artifacts/rpi.img of=/dev/rdisk4 bs=4m status=progress
+diskutil eject /dev/disk4
 ```
 
 Replace `/dev/diskN` with your actual disk (e.g., `/dev/disk4`). Note the `r` prefix in `rdiskN` — this uses the raw device for significantly faster writes.
@@ -181,17 +223,6 @@ The build reuses cached packages, so only changed components are rebuilt. Flash 
 
 Note that reflashing replaces the entire system — any state on the Pi (files you created, packages installed at runtime) will be lost. This is by design: the NixOS configuration is the source of truth.
 
-## Managing the build VM
-
-```bash
-limactl stop nixbuilder       # stop the VM (saves resources)
-limactl start nixbuilder      # start it again
-limactl shell nixbuilder      # get a shell inside the VM
-limactl delete nixbuilder     # remove it entirely
-```
-
-The VM retains its Nix store between stops, so cached builds persist.
-
 ## Troubleshooting
 
 ### Can't find the Pi on the network
@@ -221,16 +252,6 @@ If you see errors about missing kernel modules (like `sun4i-drm`), make sure `co
 - The Pi's SSH server only accepts key-based authentication
 - Make sure the SSH key in `config.json` matches your private key
 - Verify with `ssh -v alex@rpi.local` for detailed connection info
-
-### VM issues
-
-If the build VM has problems:
-
-```bash
-limactl stop nixbuilder
-limactl delete nixbuilder
-./setup-builder.sh            # recreate from scratch
-```
 
 ## How it works
 

@@ -9,7 +9,12 @@
 # be shared publicly or used by multiple people.
 # =========================================================
 
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # ---------------------------------------------------------
@@ -49,7 +54,7 @@
   # chips). The Pi 4 kernel doesn't have these, causing build
   # failures. Setting this to false tells the initrd builder
   # to skip modules it can't find instead of failing.
-  boot.initrd.kernelModules = lib.mkForce [];
+  boot.initrd.kernelModules = lib.mkForce [ ];
   boot.initrd.availableKernelModules = lib.mkForce [
     "usbhid"
     "usb_storage"
@@ -79,7 +84,7 @@
   # is "rpi", you can do: ssh user@rpi.local
   services.avahi = {
     enable = true;
-    nssmdns4 = true;   # Enable mDNS resolution for IPv4
+    nssmdns4 = true; # Enable mDNS resolution for IPv4
     publish = {
       enable = true;
       addresses = true; # Publish our IP address
@@ -125,12 +130,12 @@
   # These packages will be available system-wide for all users.
   # They're installed into the system profile, not per-user.
   environment.systemPackages = with pkgs; [
-    vim           # Text editor
-    git           # Version control
-    htop          # Interactive process viewer
-    curl          # HTTP client
-    wget          # File downloader
-    nodejs        # Node.js runtime
+    vim # Text editor
+    git # Version control
+    htop # Interactive process viewer
+    curl # HTTP client
+    wget # File downloader
+    nodejs # Node.js runtime
   ];
 
   # ---------------------------------------------------------
@@ -149,7 +154,10 @@
   # Enable flakes and the new nix command on the Pi itself,
   # so you can use `nix build`, `nix shell`, etc. when
   # logged in.
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   # Automatic garbage collection to prevent the SD card from
   # filling up with old package versions.

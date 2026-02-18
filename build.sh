@@ -40,16 +40,7 @@ if ! command -v nix &> /dev/null; then
   exit 1
 fi
 
-# Check that a builder VM is running
-if ! limactl list --json 2>/dev/null | grep -q '"status":"Running"'; then
-  echo "ERROR: No Lima VM is running."
-  echo "  Start your builder with: limactl start nixbuilder"
-  echo "  Or run setup-builder.sh first."
-  exit 1
-fi
-
 echo "  ✓ Nix found"
-echo "  ✓ Builder VM running"
 echo ""
 
 # ---------------------------------------------------------
@@ -210,60 +201,35 @@ echo "  This will take a while on first build (10-30 minutes)."
 echo "  Subsequent builds will be much faster due to caching."
 echo ""
 
-# We build inside the Lima VM directly rather than using Nix's
-# remote builder mechanism. This avoids the complexity of
-# configuring the Nix daemon's SSH access to the VM.
-#
-# How it works:
-#   - Lima mounts your home directory into the VM (read-only)
-#   - The VM can see all project files at the same path
-#   - We run 'nix build' inside the VM, where it builds natively
-#     as aarch64-linux
-#   - The result symlink goes to /tmp/lima (writable) since
-#     the home directory mount is read-only
-#   - We copy the image file back to your Mac via /tmp/lima
-VM_NAME="nixbuilder"
-limactl shell "$VM_NAME" -- bash -lc "cd '$SCRIPT_DIR' && nix build .#packages.aarch64-linux.sdImage --out-link /tmp/lima/result -L"
+# Let's build!
+NIXOS_PI_CONFIG="$CONFIG_JSON" nix build .#packages.aarch64-linux.sdImage \
+  --impure \
+  --out-link "$ARTIFACTS_DIR/result" \
+  -L
 
 echo ""
 echo "  ✓ Build complete"
 
 # ---------------------------------------------------------
-# Step 5: Copy image to artifacts/
+# Step 5: Extract SD card image
 # ---------------------------------------------------------
 echo ""
 echo "[5/5] Extracting SD card image..."
 
 mkdir -p "$ARTIFACTS_DIR"
 
-# The build produced a result symlink in the project directory.
-# The build output is a .img.zst file (zstandard compressed).
-# We copy the compressed file to the Mac first, then decompress
-# locally. This is much faster than decompressing through the
-# shared VM mount (which has to push 6GB+ through virtiofs).
-
-# Find the compressed image path inside the VM
-IMG_ZST=$(limactl shell "$VM_NAME" -- bash -lc "find -L /tmp/lima/result/sd-image/ -name '*.img.zst' | head -1")
+IMG_ZST=$(find -L "$ARTIFACTS_DIR/result/sd-image/" -name '*.img.zst' | head -1)
 
 if [ -z "$IMG_ZST" ]; then
   echo "  ERROR: Could not find .img.zst in build output."
   exit 1
 fi
 
-echo "  Copying compressed image..."
-cp "/tmp/lima/result/sd-image/$(basename "$IMG_ZST")" "$ARTIFACTS_DIR/${PI_HOSTNAME}.img.zst"
+echo "  Decompressing image..."
+nix shell nixpkgs#zstd -c zstd -d "$IMG_ZST" -o "$ARTIFACTS_DIR/${PI_HOSTNAME}.img" --force
 
-echo "  Decompressing locally..."
-nix shell nixpkgs#zstd -c zstd -d "$ARTIFACTS_DIR/${PI_HOSTNAME}.img.zst" -o "$ARTIFACTS_DIR/${PI_HOSTNAME}.img" --force
-
-# Clean up the compressed file
-rm -f "$ARTIFACTS_DIR/${PI_HOSTNAME}.img.zst"
-
-# Get the image size for display
 IMG_SIZE=$(du -h "$ARTIFACTS_DIR/${PI_HOSTNAME}.img" | awk '{print $1}')
-
 echo "  ✓ Image saved to artifacts/${PI_HOSTNAME}.img ($IMG_SIZE)"
-
 echo ""
 echo "============================================"
 echo "  Build Complete!"
