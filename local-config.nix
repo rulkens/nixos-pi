@@ -47,6 +47,7 @@ in
     extraGroups = [
       "wheel"
       "networkmanager"
+      "docker"
     ];
 
     # SSH public key — the only way to log in since password

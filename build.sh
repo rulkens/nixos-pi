@@ -11,8 +11,9 @@
 #   4. Decompresses the image to artifacts/
 #
 # Usage:
-#   chmod +x build.sh
-#   ./build.sh
+#   ./build.sh              # builds "base" profile (default)
+#   ./build.sh base         # builds "base" profile
+#   ./build.sh dev-box      # builds "dev-box" profile
 #
 # Prerequisites:
 #   - Determinate Systems Nix installed on macOS
@@ -23,6 +24,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ARTIFACTS_DIR="$SCRIPT_DIR/artifacts"
 CONFIG_JSON="$SCRIPT_DIR/config.json"
+
+# ---------------------------------------------------------
+# Profile selection and validation
+# ---------------------------------------------------------
+PROFILE="${1:-base}"
+
+if [ ! -f "$SCRIPT_DIR/profiles/${PROFILE}.nix" ]; then
+  echo "ERROR: Unknown profile '${PROFILE}'."
+  echo ""
+  echo "Available profiles:"
+  for f in "$SCRIPT_DIR/profiles/"*.nix; do
+    basename "$f" .nix | sed 's/^/  - /'
+  done
+  exit 1
+fi
 
 mkdir -p "$ARTIFACTS_DIR"
 
@@ -64,6 +80,7 @@ if [ -f "$CONFIG_JSON" ]; then
   echo "    Hostname:      $PI_HOSTNAME"
   echo "    Username:      $PI_USERNAME"
   echo "    WiFi networks: $WIFI_COUNT"
+  echo "    Profile:       $PROFILE"
   echo ""
   read -r -p "  Regenerate? [y/N]: " REGEN
   REGEN="${REGEN:-N}"
@@ -87,14 +104,14 @@ PI_USERNAME=$(python3 -c "import json; print(json.load(open('$CONFIG_JSON'))['us
 # Step 4: Build the SD card image
 # ---------------------------------------------------------
 echo ""
-echo "[4/5] Building NixOS SD card image..."
+echo "[4/5] Building NixOS SD card image (profile: $PROFILE)..."
 echo "  This will take a while on first build (10-30 minutes)."
 echo "  Subsequent builds will be much faster due to caching."
 echo ""
 
-NIXOS_PI_CONFIG="$CONFIG_JSON" nix build .#packages.aarch64-linux.sdImage \
+NIXOS_PI_CONFIG="$CONFIG_JSON" nix build ".#packages.aarch64-linux.${PROFILE}" \
   --impure \
-  --out-link "$ARTIFACTS_DIR/result" \
+  --out-link "$ARTIFACTS_DIR/result-${PROFILE}" \
   -L
 
 echo ""
@@ -106,7 +123,7 @@ echo "  ✓ Build complete"
 echo ""
 echo "[5/5] Extracting SD card image..."
 
-IMG_ZST=$(find -L "$ARTIFACTS_DIR/result/sd-image/" -name '*.img.zst' | head -1)
+IMG_ZST=$(find -L "$ARTIFACTS_DIR/result-${PROFILE}/sd-image/" -name '*.img.zst' | head -1)
 
 if [ -z "$IMG_ZST" ]; then
   echo "  ERROR: Could not find .img.zst in build output."
@@ -124,8 +141,9 @@ echo "============================================"
 echo "  Build Complete!"
 echo "============================================"
 echo ""
-echo "  Image: $ARTIFACTS_DIR/${PI_HOSTNAME}.img"
-echo "  Size:  $IMG_SIZE"
+echo "  Profile: $PROFILE"
+echo "  Image:   $ARTIFACTS_DIR/${PI_HOSTNAME}.img"
+echo "  Size:    $IMG_SIZE"
 echo ""
 echo "  To flash to SD card:"
 echo "    1. Insert SD card"
