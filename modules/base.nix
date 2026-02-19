@@ -36,7 +36,7 @@
   # releases, and this ensures backwards compatibility.
   # Set this to the version you first installed, and generally
   # don't change it.
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.05";
 
   # ---------------------------------------------------------
   # Boot Configuration
