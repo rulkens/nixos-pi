@@ -12,33 +12,57 @@ let
 
 in
 {
-  options.rpi.mosquitto.enable = lib.mkEnableOption "Mosquitto MQTT broker";
+  options.rpi.mosquitto = {
+    enable = lib.mkEnableOption "Mosquitto MQTT broker";
+    port = lib.mkOption {
+      type = lib.types.port;
+      default = 1883;
+      description = "Port for the plain MQTT listener.";
+    };
+    wsPort = lib.mkOption {
+      type = lib.types.port;
+      default = 9001;
+      description = "Port for the MQTT-over-WebSockets listener.";
+    };
+    extraUsers = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      description = "Additional MQTT users (name → plaintext password) added to all listeners.";
+    };
+  };
 
   config = lib.mkIf config.rpi.mosquitto.enable {
     services.mosquitto = {
       enable = true;
-      listeners = [
-        {
-          # Plain MQTT
-          port = 1883;
-          omitPasswordAuth = false;
-          users.${mqttUser}.password = mqttPassword;
-          users.client.password = mqttClientPassword;
-        }
-        {
-          # MQTT over WebSockets
-          port = 9001;
-          omitPasswordAuth = false;
-          users.${mqttUser}.password = mqttPassword;
-          users.client.password = mqttClientPassword;
-          settings.protocol = "websockets";
-        }
-      ];
+      listeners =
+        let
+          baseUsers = {
+            ${mqttUser} = { password = mqttPassword; };
+            client = { password = mqttClientPassword; };
+          };
+          extraUserAttrs = lib.mapAttrs (_: pass: { password = pass; }) config.rpi.mosquitto.extraUsers;
+          allUsers = baseUsers // extraUserAttrs;
+        in
+        [
+          {
+            # Plain MQTT
+            port = config.rpi.mosquitto.port;
+            omitPasswordAuth = false;
+            users = allUsers;
+          }
+          {
+            # MQTT over WebSockets
+            port = config.rpi.mosquitto.wsPort;
+            omitPasswordAuth = false;
+            users = allUsers;
+            settings.protocol = "websockets";
+          }
+        ];
     };
 
     networking.firewall.allowedTCPPorts = [
-      1883
-      9001
+      config.rpi.mosquitto.port
+      config.rpi.mosquitto.wsPort
     ];
   };
 }

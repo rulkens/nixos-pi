@@ -6,6 +6,7 @@
     ../modules/tailscale.nix
     ../modules/samba.nix
     ../modules/mosquitto.nix
+    ../modules/zigbee2mqtt.nix
     ../modules/headless-gl.nix
   ];
 
@@ -13,5 +14,6 @@
   rpi.tailscale.enable = false;
   rpi.samba.enable = true;
   rpi.mosquitto.enable = true;
+  rpi.zigbee2mqtt.enable = true;
   rpi.headlessGL.enable = true;
 }

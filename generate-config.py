@@ -248,6 +248,22 @@ def main():
     else:
         mqtt_client_password = prompt_secret("MQTT password for 'client' user")
 
+    # --- Zigbee2MQTT ---
+    print()
+    existing_z2m = existing.get("zigbee2mqtt", {})
+    if existing_z2m.get("mqttPassword"):
+        z2m_mqtt_password = prompt_secret("Zigbee2MQTT MQTT password (leave blank to keep existing)")
+        if not z2m_mqtt_password:
+            z2m_mqtt_password = existing_z2m["mqttPassword"]
+            print("  Keeping existing Zigbee2MQTT MQTT password.")
+    else:
+        z2m_mqtt_password = prompt_secret("Zigbee2MQTT MQTT password")
+
+    z2m_serial_port = prompt(
+        "Zigbee USB adapter serial port",
+        default=existing_z2m.get("serialPort", "/dev/ttyUSB0"),
+    )
+
     # -- Summary --
     print()
     print("  Configuration summary:")
@@ -275,6 +291,10 @@ def main():
         "mqtt": {
             "password": mqtt_password,
             "clientPassword": mqtt_client_password,
+        },
+        "zigbee2mqtt": {
+            "mqttPassword": z2m_mqtt_password,
+            "serialPort": z2m_serial_port,
         },
     }
 
