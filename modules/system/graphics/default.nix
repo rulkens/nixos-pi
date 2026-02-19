@@ -1,0 +1,6 @@
+{ ... }:
+{
+  imports = [
+    ./headless-gl.nix
+  ];
+}
