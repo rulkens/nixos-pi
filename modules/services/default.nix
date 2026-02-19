@@ -42,6 +42,7 @@
     ./avahi.nix
     ./docker.nix
     ./mosquitto.nix
+    ./nodejs-app.nix
     ./samba.nix
     ./tailscale.nix
     ./zigbee2mqtt.nix
