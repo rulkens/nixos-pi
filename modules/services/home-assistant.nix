@@ -79,20 +79,23 @@ in
     services.home-assistant = {
       enable = true;
 
-      # ZHA requires additional Python deps and is only included
-      # when zha.enable = true.
-      extraComponents = lib.optionals cfg.zha.enable [ "zha" ];
+      # mqtt requires paho-mqtt and zha requires zigpy etc.
+      # extraComponents pulls in the Python deps for each integration.
+      extraComponents = [ "mqtt" "hue" ] ++ lib.optionals cfg.zha.enable [ "zha" ];
 
       # Minimal declarative configuration. All integrations,
       # automations, and dashboards are managed through the UI;
       # they are stored in /var/lib/hass/.storage/ and are not
       # affected by changes to this file.
       #
-      # default_config enables the frontend, history, logbook,
-      # and other built-in features that the UI depends on.
+      # We list components explicitly instead of using default_config,
+      # which would pull in integrations (otbr, thread, etc.) whose
+      # Python packages aren't available, causing boot errors.
       config = {
         homeassistant = { };
-        default_config = { };
+        frontend = { };
+        history = { };
+        logbook = { };
         http = {
           server_port = cfg.port;
         };
