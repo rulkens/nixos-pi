@@ -33,6 +33,10 @@ in
       };
     };
 
+    # Wait 30 s between restarts so a missing USB device doesn't
+    # cause a busy crash loop while the adapter is still enumerating.
+    systemd.services.zigbee2mqtt.serviceConfig.RestartSec = "30s";
+
     # The Zigbee USB adapter is owned by the dialout group.
     users.users.zigbee2mqtt.extraGroups = [ "dialout" ];
 
