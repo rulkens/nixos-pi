@@ -142,18 +142,46 @@ def collect_wifi_networks():
 # Main
 # ---------------------------------------------------------
 
+def load_existing_config(config_path):
+    """Load existing config.json if present, return dict or {}."""
+    if config_path.exists():
+        try:
+            return json.loads(config_path.read_text())
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
 def main():
     config_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("config.json")
+
+    existing = load_existing_config(config_path)
+    if existing:
+        print()
+        print(f"  Found existing config at {config_path} — using values as defaults.")
 
     print()
     print("[2/5] Gathering configuration...")
     print()
 
-    hostname = prompt("Hostname for the Pi", default="rpi")
-    username = prompt("Username", default="pi")
+    hostname = prompt("Hostname for the Pi", default=existing.get("hostname", "rpi"))
+    username = prompt("Username", default=existing.get("username", "pi"))
 
     print()
-    networks = collect_wifi_networks()
+    existing_networks = existing.get("wifi", [])
+    if existing_networks:
+        print("  Existing WiFi networks:")
+        for n in existing_networks:
+            print(f"    - {n['ssid']}")
+        print()
+        recreate = prompt("Reconfigure WiFi networks? [y/N]", default="N")
+        if recreate.upper() == "Y":
+            networks = collect_wifi_networks()
+        else:
+            networks = existing_networks
+            print(f"  Keeping existing WiFi networks.")
+    else:
+        networks = collect_wifi_networks()
     if not networks:
         print("  ERROR: At least one WiFi network is required.")
         sys.exit(1)
@@ -169,7 +197,13 @@ def main():
 
     # --- Samba password ---
     print()
-    samba_password = prompt_secret("Samba share password")
+    if existing.get("sambaPassword"):
+        samba_password = prompt_secret("Samba share password (leave blank to keep existing)")
+        if not samba_password:
+            samba_password = existing["sambaPassword"]
+            print("  Keeping existing Samba password.")
+    else:
+        samba_password = prompt_secret("Samba share password")
 
     # -- Summary --
     print()
