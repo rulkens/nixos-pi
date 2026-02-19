@@ -47,6 +47,7 @@ nixos-pi/
 │   ├── services/                Opt-in service modules
 │   │   ├── avahi.nix            mDNS / .local discovery
 │   │   ├── docker.nix           Docker + docker-compose
+│   │   ├── home-assistant.nix   Home Assistant home automation platform
 │   │   ├── mosquitto.nix        MQTT broker
 │   │   ├── nodejs-app.nix       Node.js app from a Git repository (example)
 │   │   ├── samba.nix            SMB file share
