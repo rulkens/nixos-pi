@@ -1,21 +1,10 @@
 { ... }:
 {
-  imports = [
-    ../modules/base.nix
-    ../modules/services/docker.nix
-    ../modules/services/tailscale.nix
-    ../modules/services/samba.nix
-    ../modules/services/mosquitto.nix
-    ../modules/services/zigbee2mqtt.nix
-    ../modules/headless-gl.nix
-    ../modules/home.nix
-  ];
+  imports = [ ../modules ];
 
-  rpi.docker.enable = false;
-  rpi.tailscale.enable = false;
-  rpi.samba.enable = true;
-  rpi.mosquitto.enable = true;
-  rpi.zigbee2mqtt.enable = true;
-  rpi.headlessGL.enable = true;
+  rpi.services.samba.enable = true;
+  rpi.services.mosquitto.enable = true;
+  rpi.services.zigbee2mqtt.enable = true;
+  rpi.system.headlessGL.enable = true;
   rpi.home.enable = true;
 }

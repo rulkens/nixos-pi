@@ -12,7 +12,7 @@ let
 
 in
 {
-  options.rpi.mosquitto = {
+  options.rpi.services.mosquitto = {
     enable = lib.mkEnableOption "Mosquitto MQTT broker";
     port = lib.mkOption {
       type = lib.types.port;
@@ -31,28 +31,34 @@ in
     };
   };
 
-  config = lib.mkIf config.rpi.mosquitto.enable {
+  config = lib.mkIf config.rpi.services.mosquitto.enable {
     services.mosquitto = {
       enable = true;
       listeners =
         let
           baseUsers = {
-            ${mqttUser} = { password = mqttPassword; };
-            client = { password = mqttClientPassword; };
+            ${mqttUser} = {
+              password = mqttPassword;
+            };
+            client = {
+              password = mqttClientPassword;
+            };
           };
-          extraUserAttrs = lib.mapAttrs (_: pass: { password = pass; }) config.rpi.mosquitto.extraUsers;
+          extraUserAttrs = lib.mapAttrs (_: pass: {
+            password = pass;
+          }) config.rpi.services.mosquitto.extraUsers;
           allUsers = baseUsers // extraUserAttrs;
         in
         [
           {
             # Plain MQTT
-            port = config.rpi.mosquitto.port;
+            port = config.rpi.services.mosquitto.port;
             omitPasswordAuth = false;
             users = allUsers;
           }
           {
             # MQTT over WebSockets
-            port = config.rpi.mosquitto.wsPort;
+            port = config.rpi.services.mosquitto.wsPort;
             omitPasswordAuth = false;
             users = allUsers;
             settings.protocol = "websockets";
@@ -61,8 +67,8 @@ in
     };
 
     networking.firewall.allowedTCPPorts = [
-      config.rpi.mosquitto.port
-      config.rpi.mosquitto.wsPort
+      config.rpi.services.mosquitto.port
+      config.rpi.services.mosquitto.wsPort
     ];
   };
 }

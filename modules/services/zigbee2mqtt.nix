@@ -9,19 +9,19 @@ let
   z2mCfg = localCfg.zigbee2mqtt;
 in
 {
-  options.rpi.zigbee2mqtt.enable = lib.mkEnableOption "Zigbee2MQTT bridge";
+  options.rpi.services.zigbee2mqtt.enable = lib.mkEnableOption "Zigbee2MQTT bridge";
 
-  config = lib.mkIf config.rpi.zigbee2mqtt.enable {
+  config = lib.mkIf config.rpi.services.zigbee2mqtt.enable {
     # Register the zigbee2mqtt MQTT user with the broker.
     # Requires modules/mosquitto.nix to be imported in the same profile.
-    rpi.mosquitto.extraUsers.zigbee2mqtt = z2mCfg.mqttPassword;
+    rpi.services.mosquitto.extraUsers.zigbee2mqtt = z2mCfg.mqttPassword;
 
     services.zigbee2mqtt = {
       enable = true;
       settings = {
         permit_join = false;
         mqtt = {
-          server = "mqtt://localhost:${toString config.rpi.mosquitto.port}";
+          server = "mqtt://localhost:${toString config.rpi.services.mosquitto.port}";
           user = "zigbee2mqtt";
           password = z2mCfg.mqttPassword;
         };

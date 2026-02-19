@@ -8,10 +8,10 @@
 with lib;
 
 let
-  cfg = config.rpi.headlessGL;
+  cfg = config.rpi.system.headlessGL;
 in
 {
-  options.rpi.headlessGL = {
+  options.rpi.system.headlessGL = {
     enable = mkEnableOption "headless GL support for Raspberry Pi";
   };
 

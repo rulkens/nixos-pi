@@ -17,13 +17,11 @@
 }:
 
 {
-  imports = [ ./services/avahi.nix ];
-
   # mDNS is enabled by default in the base config so you can reach the Pi
   # as <hostname>.local without knowing its IP address. This is especially
   # useful for headless setups where there's no screen to check the IP.
-  # Disable with rpi.avahi.enable = false; in your profile if not needed.
-  rpi.avahi.enable = true;
+  # Disable with rpi.services.avahi.enable = false; in your profile if not needed.
+  rpi.services.avahi.enable = true;
 
   # ---------------------------------------------------------
   # NixOS Version

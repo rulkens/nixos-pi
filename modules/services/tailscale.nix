@@ -1,8 +1,13 @@
-{ config, pkgs, lib, ... }:
 {
-  options.rpi.tailscale.enable = lib.mkEnableOption "Tailscale VPN";
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
+  options.rpi.services.tailscale.enable = lib.mkEnableOption "Tailscale VPN";
 
-  config = lib.mkIf config.rpi.tailscale.enable {
+  config = lib.mkIf config.rpi.services.tailscale.enable {
     services.tailscale.enable = true;
     networking.firewall.allowedUDPPorts = [ 41641 ];
     networking.firewall.trustedInterfaces = [ "tailscale0" ];

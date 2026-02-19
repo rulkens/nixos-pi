@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   configPath = builtins.getEnv "NIXOS_PI_CONFIG";
   localCfg = builtins.fromJSON (builtins.readFile configPath);
@@ -7,9 +12,9 @@ let
   sambaHost = localCfg.hostname;
 in
 {
-  options.rpi.samba.enable = lib.mkEnableOption "Samba home directory share";
+  options.rpi.services.samba.enable = lib.mkEnableOption "Samba home directory share";
 
-  config = lib.mkIf config.rpi.samba.enable {
+  config = lib.mkIf config.rpi.services.samba.enable {
     # WS-Discovery: makes the Pi appear in Windows Explorer / macOS Finder sidebar
     services.samba-wsdd.enable = true;
 

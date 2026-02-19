@@ -1,8 +1,13 @@
-{ config, pkgs, lib, ... }:
 {
-  options.rpi.avahi.enable = lib.mkEnableOption "Avahi mDNS daemon";
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
+  options.rpi.services.avahi.enable = lib.mkEnableOption "Avahi mDNS daemon";
 
-  config = lib.mkIf config.rpi.avahi.enable {
+  config = lib.mkIf config.rpi.services.avahi.enable {
     # Enable mDNS/DNS-SD via Avahi. This lets you find your
     # Pi on the local network as "<hostname>.local" instead
     # of having to look up its IP address. So if your hostname

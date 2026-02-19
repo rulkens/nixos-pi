@@ -18,10 +18,9 @@ in
     users.users.${username}.shell = pkgs.zsh;
 
     home-manager.users.${username} = {
-      imports = [
-        ./home/zsh.nix
-        ./home/fastfetch.nix
-      ];
+      imports = [ ./zsh.nix ./fastfetch.nix ];
+
+      rpi.home.fastfetch.enable = true;
 
       # Must match the NixOS stateVersion.
       home.stateVersion = "25.05";
