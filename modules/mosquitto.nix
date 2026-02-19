@@ -3,8 +3,20 @@ let
   configPath = builtins.getEnv "NIXOS_PI_CONFIG";
   localCfg = builtins.fromJSON (builtins.readFile configPath);
   mqttUser = localCfg.username;
-  mqttPassword = localCfg.mqttPassword;
-  mqttClientPassword = localCfg.mqttClientPassword;
+  mqttPassword = localCfg.mqtt.password;
+  mqttClientPassword = localCfg.mqtt.clientPassword;
+
+  # Generate a per-user mosquitto passwd file at build time.
+  # mosquitto_passwd -b -c produces a file in "user:$7$hash" format,
+  # which is what services.mosquitto.listeners.*.users.*.passwordFile expects.
+  mkPasswdFile = user: pass: pkgs.runCommand "mqtt-passwd-${user}" {
+    nativeBuildInputs = [ pkgs.mosquitto ];
+  } ''
+    mosquitto_passwd -b -c "$out" '${user}' '${pass}'
+  '';
+
+  userPasswdFile   = mkPasswdFile mqttUser mqttPassword;
+  clientPasswdFile = mkPasswdFile "client" mqttClientPassword;
 in
 {
   options.rpi.mosquitto.enable = lib.mkEnableOption "Mosquitto MQTT broker";
@@ -16,41 +28,21 @@ in
         {
           # Plain MQTT
           port = 1883;
-          omitPasswordAuth = true; # password file managed by activation script
-          settings = {
-            allow_anonymous = false;
-            password_file = "/var/lib/mosquitto/passwd";
-          };
+          omitPasswordAuth = false;
+          users.${mqttUser} = { passwordFile = userPasswdFile; };
+          users.client      = { passwordFile = clientPasswdFile; };
         }
         {
           # MQTT over WebSockets
           port = 9001;
-          omitPasswordAuth = true;
-          settings = {
-            allow_anonymous = false;
-            password_file = "/var/lib/mosquitto/passwd";
-            protocol = "websockets";
-          };
+          omitPasswordAuth = false;
+          users.${mqttUser} = { passwordFile = userPasswdFile; };
+          users.client      = { passwordFile = clientPasswdFile; };
+          settings.protocol = "websockets";
         }
       ];
     };
 
     networking.firewall.allowedTCPPorts = [ 1883 9001 ];
-
-    # Create the Mosquitto password file at activation time.
-    # mosquitto_passwd -b writes a hashed entry; -c creates/truncates the file.
-    # The second call adds the client user without -c so the first entry is kept.
-    system.activationScripts.mosquitto-passwd = {
-      deps = [ "users" ];
-      text = ''
-        install -d -m 750 -o mosquitto -g mosquitto /var/lib/mosquitto
-        ${pkgs.mosquitto}/bin/mosquitto_passwd -b -c /var/lib/mosquitto/passwd \
-          ${mqttUser} '${mqttPassword}'
-        ${pkgs.mosquitto}/bin/mosquitto_passwd -b /var/lib/mosquitto/passwd \
-          client '${mqttClientPassword}'
-        chown mosquitto:mosquitto /var/lib/mosquitto/passwd
-        chmod 640 /var/lib/mosquitto/passwd
-      '';
-    };
   };
 }
