@@ -229,6 +229,24 @@ def main():
     else:
         samba_password = prompt_secret("Samba share password")
 
+    # --- MQTT passwords ---
+    print()
+    if existing.get("mqttPassword"):
+        mqtt_password = prompt_secret("MQTT password for main user (leave blank to keep existing)")
+        if not mqtt_password:
+            mqtt_password = existing["mqttPassword"]
+            print("  Keeping existing MQTT password.")
+    else:
+        mqtt_password = prompt_secret("MQTT password for main user")
+
+    if existing.get("mqttClientPassword"):
+        mqtt_client_password = prompt_secret("MQTT password for 'client' user (leave blank to keep existing)")
+        if not mqtt_client_password:
+            mqtt_client_password = existing["mqttClientPassword"]
+            print("  Keeping existing MQTT client password.")
+    else:
+        mqtt_client_password = prompt_secret("MQTT password for 'client' user")
+
     # -- Summary --
     print()
     print("  Configuration summary:")
@@ -253,6 +271,8 @@ def main():
         "sambaPassword": samba_password,
         "hostKey": host_key_private,
         "hostKeyPub": host_key_public,
+        "mqttPassword": mqtt_password,
+        "mqttClientPassword": mqtt_client_password,
     }
 
     config_path.write_text(json.dumps(config, indent=2))
