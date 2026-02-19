@@ -27,37 +27,50 @@
   };
 
   # ------- Outputs -------
-  outputs = { self, nixpkgs, home-manager }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+    }:
     let
       # -------------------------------------------------------
       # Profiles
       # -------------------------------------------------------
       # Add a name here to expose a new nixosConfiguration and
       # package. Each name must have a matching profiles/<name>.nix.
-      profiles = [ "base" "dev-box" ];
+      profiles = [
+        "base"
+        "dev-box"
+      ];
 
       # Build a NixOS system for a given profile name.
       # Uses path concatenation (not string interpolation) because
       # Nix path literals cannot directly interpolate variables.
-      makeConfig = name: nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        modules = [
-          home-manager.nixosModules.home-manager
-          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-          (./profiles + "/${name}.nix")
-          ./local-config.nix
-          { sdImage.compressImage = false; }
-        ];
-      };
+      makeConfig =
+        name:
+        nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          modules = [
+            home-manager.nixosModules.home-manager
+            "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+            (./profiles + "/${name}.nix")
+            { sdImage.compressImage = false; }
+          ];
+        };
 
-    in {
+    in
+    {
       # -------------------------------------------------------
       # NixOS Configurations
       # -------------------------------------------------------
       # One config per profile: nixosConfigurations.base,
       # nixosConfigurations.dev-box, etc.
       nixosConfigurations = builtins.listToAttrs (
-        map (name: { inherit name; value = makeConfig name; }) profiles
+        map (name: {
+          inherit name;
+          value = makeConfig name;
+        }) profiles
       );
 
       # -------------------------------------------------------
@@ -82,16 +95,24 @@
       # Provides python3, zstd, git for running build.sh.
       devShells =
         let
-          shell = system:
-            let pkgs = import nixpkgs { inherit system; };
-            in pkgs.mkShell {
-              packages = with pkgs; [ python3 zstd git ];
+          shell =
+            system:
+            let
+              pkgs = import nixpkgs { inherit system; };
+            in
+            pkgs.mkShell {
+              packages = with pkgs; [
+                python3
+                zstd
+                git
+              ];
               shellHook = ''echo "nixos-pi dev shell — run ./build.sh [profile]"'';
             };
-        in {
+        in
+        {
           aarch64-darwin.default = shell "aarch64-darwin";
-          x86_64-darwin.default  = shell "x86_64-darwin";
-          aarch64-linux.default  = shell "aarch64-linux";
+          x86_64-darwin.default = shell "x86_64-darwin";
+          aarch64-linux.default = shell "aarch64-linux";
         };
     };
 }
