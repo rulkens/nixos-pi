@@ -8,5 +8,3 @@ config.json
 # deploy target — may contain a local IP; example is committed instead
 deploy-config.json
 
-# Nix flake lock (optional — some prefer to commit this)
-# flake.lock
