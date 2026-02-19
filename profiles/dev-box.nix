@@ -8,6 +8,7 @@
     ../modules/mosquitto.nix
     ../modules/zigbee2mqtt.nix
     ../modules/headless-gl.nix
+    ../modules/home.nix
   ];
 
   rpi.docker.enable = false;
@@ -16,4 +17,5 @@
   rpi.mosquitto.enable = true;
   rpi.zigbee2mqtt.enable = true;
   rpi.headlessGL.enable = true;
+  rpi.home.enable = true;
 }

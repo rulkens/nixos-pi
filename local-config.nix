@@ -35,6 +35,14 @@ let
   cfg = builtins.fromJSON (builtins.readFile configPath);
 in
 {
+  # -- Home-manager global settings --
+  # useGlobalPkgs: share the system nixpkgs with home-manager (avoids a
+  #   second nixpkgs evaluation and keeps package versions consistent).
+  # useUserPackages: install user packages into /etc/profiles rather than
+  #   ~/.nix-profile, which works better with non-bash login shells.
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+
   # -- Hostname --
   networking.hostName = cfg.hostname;
 

@@ -20,10 +20,14 @@
   # ------- Inputs -------
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    home-manager = {
+      url = "github:nix-community/home-manager/release-25.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   # ------- Outputs -------
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, home-manager }:
     let
       # -------------------------------------------------------
       # Profiles
@@ -38,6 +42,7 @@
       makeConfig = name: nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         modules = [
+          home-manager.nixosModules.home-manager
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           (./profiles + "/${name}.nix")
           ./local-config.nix
