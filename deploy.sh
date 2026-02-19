@@ -61,7 +61,7 @@ echo ""
 NIXOS_PI_CONFIG="$CONFIG_JSON" nix run nixpkgs#nixos-rebuild -- switch \
   --flake ".#${PROFILE}" \
   --target-host "${DEPLOY_USER}@${DEPLOY_HOST}" \
-  --use-remote-sudo \
+  --sudo \
   --impure \
   -L
 
