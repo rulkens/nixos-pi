@@ -167,6 +167,10 @@ def main():
         sys.exit(1)
     print(f"  ✓ Found: {keyfile}")
 
+    # --- Samba password ---
+    print()
+    samba_password = prompt_secret("Samba share password")
+
     # -- Summary --
     print()
     print("  Configuration summary:")
@@ -188,6 +192,7 @@ def main():
         "username": username,
         "sshPubKey": pubkey,
         "wifi": networks,
+        "sambaPassword": samba_password,
     }
 
     config_path.write_text(json.dumps(config, indent=2))
