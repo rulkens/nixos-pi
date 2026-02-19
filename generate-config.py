@@ -274,6 +274,12 @@ def main():
     for n in networks:
         print(f"      - {n['ssid']}")
     print()
+    print("  ⚠  Security notice:")
+    print("     All secrets (WiFi passwords, Samba password, MQTT credentials,")
+    print("     SSH host key) are baked into the SD card image at build time.")
+    print("     Treat a built image with the same care as a password export —")
+    print("     do not share it or store it in an untrusted location.")
+    print()
 
     confirm = prompt("Proceed? [Y/n]", default="Y")
     if confirm.upper() == "N":

@@ -41,7 +41,7 @@
       # package. Each name must have a matching profiles/<name>.nix.
       profiles = [
         "base"
-        "dev-box"
+        "home-automation"
       ];
 
       # Build a NixOS system for a given profile name.
