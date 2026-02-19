@@ -1,4 +1,6 @@
-# NixOS Raspberry Pi 4 Image Builder
+# NixOS Raspberry Pi 4 Image Builder for macOS
+
+> **macOS only.** This project uses the Determinate Systems native Linux builder, which relies on Apple Virtualization Framework. It will not work on Linux or Windows.
 
 Build reproducible, headless NixOS SD card images for Raspberry Pi 4 — entirely from macOS.
 

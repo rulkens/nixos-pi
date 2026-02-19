@@ -106,7 +106,37 @@
                 zstd
                 git
               ];
-              shellHook = ''echo "nixos-pi dev shell — run ./build.sh [profile]"'';
+              shellHook = ''
+                h=$(printf '\033[38;5;183m')  # lavender   — section headers
+                c=$(printf '\033[38;5;153m')  # sky blue   — commands
+                a=$(printf '\033[38;5;120m')  # mint green — arguments / profiles
+                d=$(printf '\033[38;5;250m')  # soft grey  — descriptions
+                r=$(printf '\033[0m')          # reset
+
+                printf "\n"
+                printf "  ''${h}nixos-pi''${r}  —  NixOS Raspberry Pi image builder\n"
+                printf "\n"
+                printf "  ''${h}Build''${r}\n"
+                printf "    ''${c}./build-image.sh''${r} ''${a}<profile>''${r}\n"
+                printf "    ''${d}Build a bootable SD card image from a profile''${r}\n"
+                printf "\n"
+                printf "  ''${h}Deploy''${r}\n"
+                printf "    ''${c}./deploy.sh''${r} ''${a}<profile>''${r}\n"
+                printf "    ''${d}Switch a running Pi to the new config over SSH''${r}\n"
+                printf "    ''${c}./deploy.sh --reconfigure''${r} ''${a}<profile>''${r}\n"
+                printf "    ''${d}Regenerate config.json, then deploy''${r}\n"
+                printf "\n"
+                printf "  ''${h}Config''${r}\n"
+                printf "    ''${c}./generate-config.py''${r}\n"
+                printf "    ''${d}Generate or update config.json (WiFi, passwords, SSH key)''${r}\n"
+                printf "\n"
+                printf "  ''${h}Profiles''${r}\n"
+                printf "    ''${a}base''${r}              ''${d}Minimal headless Pi — SSH, WiFi, mDNS''${r}\n"
+                printf "    ''${a}home-automation''${r}   ''${d}Mosquitto, Zigbee2MQTT, Samba, headless GL, home-manager''${r}\n"
+                printf "\n"
+
+                unset h c a d r
+              '';
             };
         in
         {
