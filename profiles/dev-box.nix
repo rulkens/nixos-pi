@@ -2,11 +2,11 @@
 {
   imports = [
     ../modules/base.nix
-    ../modules/docker.nix
-    ../modules/tailscale.nix
-    ../modules/samba.nix
-    ../modules/mosquitto.nix
-    ../modules/zigbee2mqtt.nix
+    ../modules/services/docker.nix
+    ../modules/services/tailscale.nix
+    ../modules/services/samba.nix
+    ../modules/services/mosquitto.nix
+    ../modules/services/zigbee2mqtt.nix
     ../modules/headless-gl.nix
     ../modules/home.nix
   ];

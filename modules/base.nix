@@ -17,7 +17,7 @@
 }:
 
 {
-  imports = [ ./avahi.nix ];
+  imports = [ ./services/avahi.nix ];
 
   # mDNS is enabled by default in the base config so you can reach the Pi
   # as <hostname>.local without knowing its IP address. This is especially
@@ -155,7 +155,10 @@
   ];
 
   # Allow wheel users to push unsigned store paths (needed for nixos-rebuild deploy).
-  nix.settings.trusted-users = [ "root" "@wheel" ];
+  nix.settings.trusted-users = [
+    "root"
+    "@wheel"
+  ];
 
   # Automatic garbage collection to prevent the SD card from
   # filling up with old package versions.
