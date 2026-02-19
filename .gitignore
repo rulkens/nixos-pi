@@ -8,3 +8,6 @@ config.json
 # deploy target — may contain a local IP; example is committed instead
 deploy-config.json
 
+# Home Assistant backups — contains credentials, not committed by default
+backups/
+
