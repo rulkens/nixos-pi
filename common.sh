@@ -54,6 +54,22 @@ validate_profile() {
   fi
 }
 
+read_config() {
+  local profile="$1"
+
+  if [ ! -f "$CONFIG_JSON" ]; then
+    echo "ERROR: config.json not found. Run ./build-image.sh first to generate it."
+    exit 1
+  fi
+
+  PI_HOSTNAME=$(python3 -c "import json; print(json.load(open('$CONFIG_JSON'))['hostname'])")
+  PI_USERNAME=$(python3 -c "import json; print(json.load(open('$CONFIG_JSON'))['username'])")
+  WIFI_COUNT=$(python3 -c "import json; print(len(json.load(open('$CONFIG_JSON'))['wifi']))")
+
+  echo "  Config: $PI_HOSTNAME / $PI_USERNAME ($WIFI_COUNT WiFi networks) / profile: $profile"
+  echo ""
+}
+
 load_config() {
   local profile="$1"
 

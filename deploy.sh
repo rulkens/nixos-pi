@@ -6,14 +6,23 @@
 # See deploy-config.json.example for the expected format.
 #
 # Usage:
-#   ./deploy.sh              # deploys "base" profile (default)
-#   ./deploy.sh dev-box      # deploys "dev-box" profile
+#   ./deploy.sh                    # deploys "base" profile (default)
+#   ./deploy.sh dev-box            # deploys "dev-box" profile
+#   ./deploy.sh --reconfigure      # prompt to regenerate config.json first
+#   ./deploy.sh --reconfigure dev-box
 # =========================================================
 set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
 DEPLOY_CONFIG="$SCRIPT_DIR/deploy-config.json"
+RECONFIGURE=false
+
+if [[ "${1:-}" == "--reconfigure" ]]; then
+  RECONFIGURE=true
+  shift
+fi
+
 PROFILE="${1:-base}"
 
 validate_profile "$PROFILE"
@@ -29,7 +38,11 @@ echo "[1/3] Checking prerequisites..."
 check_prerequisites
 
 echo "[2/3] Gathering configuration..."
-load_config "$PROFILE"
+if $RECONFIGURE; then
+  load_config "$PROFILE"
+else
+  read_config "$PROFILE"
+fi
 
 if [ ! -f "$DEPLOY_CONFIG" ]; then
   echo "ERROR: deploy-config.json not found."
