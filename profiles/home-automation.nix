@@ -26,6 +26,9 @@
       # Tailscale VPN — run `sudo tailscale up` after first boot to
       # authenticate and join your tailnet.
       # tailscale.enable = true;
+
+      # Home Assistant — popular open-source home automation platform.
+      homeAssistant.enable = true;
     };
 
     system = {

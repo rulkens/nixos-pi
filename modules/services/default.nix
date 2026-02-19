@@ -41,6 +41,7 @@
   imports = [
     ./avahi.nix
     ./docker.nix
+    ./home-assistant.nix
     ./mosquitto.nix
     ./nodejs-app.nix
     ./samba.nix
