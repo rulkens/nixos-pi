@@ -84,6 +84,20 @@ def detect_ssh_pubkey():
     return None, None
 
 
+def generate_host_key():
+    """Generate an ed25519 SSH host key pair, returning (private, public)."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        key_path = Path(tmpdir) / "ssh_host_ed25519_key"
+        subprocess.run(
+            ["ssh-keygen", "-t", "ed25519", "-N", "", "-f", str(key_path)],
+            check=True, capture_output=True,
+        )
+        private = key_path.read_text()
+        public = (key_path.parent / (key_path.name + ".pub")).read_text().strip()
+    return private, public
+
+
 # ---------------------------------------------------------
 # Collection functions
 # ---------------------------------------------------------
@@ -195,6 +209,16 @@ def main():
         sys.exit(1)
     print(f"  ✓ Found: {keyfile}")
 
+    # --- SSH host key ---
+    if existing.get("hostKey"):
+        print("  ✓ Using existing SSH host key (stable across re-provisions).")
+        host_key_private = existing["hostKey"]
+        host_key_public = existing["hostKeyPub"]
+    else:
+        print("  Generating SSH host key...")
+        host_key_private, host_key_public = generate_host_key()
+        print("  ✓ Generated new SSH host key.")
+
     # --- Samba password ---
     print()
     if existing.get("sambaPassword"):
@@ -227,6 +251,8 @@ def main():
         "sshPubKey": pubkey,
         "wifi": networks,
         "sambaPassword": samba_password,
+        "hostKey": host_key_private,
+        "hostKeyPub": host_key_public,
     }
 
     config_path.write_text(json.dumps(config, indent=2))

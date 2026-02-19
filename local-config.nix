@@ -59,6 +59,21 @@ in
   # Required since password auth is disabled.
   security.sudo.wheelNeedsPassword = false;
 
+  # -- SSH Host Key --
+  # A stable host key is baked into the image so the fingerprint never
+  # changes across re-provisions. Without this, every flash triggers a
+  # "REMOTE HOST IDENTIFICATION HAS CHANGED" warning on connecting clients.
+  environment.etc."ssh/ssh_host_ed25519_key" = {
+    mode = "0600";
+    text = cfg.hostKey;
+  };
+  environment.etc."ssh/ssh_host_ed25519_key.pub" = {
+    text = cfg.hostKeyPub;
+  };
+  services.openssh.hostKeys = [
+    { type = "ed25519"; path = "/etc/ssh/ssh_host_ed25519_key"; }
+  ];
+
   # -- WiFi Configuration --
   # cfg.wifi is a list of { ssid, password } objects.
   # We use map + listToAttrs to convert the list into the
