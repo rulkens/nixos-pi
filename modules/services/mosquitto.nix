@@ -1,5 +1,6 @@
 {
   config,
+  pkgs,
   lib,
   ...
 }:
@@ -39,13 +40,16 @@ in
           baseUsers = {
             ${mqttUser} = {
               password = mqttPassword;
+              acl = [ "readwrite #" ];
             };
             client = {
               password = mqttClientPassword;
+              acl = [ "readwrite #" ];
             };
           };
           extraUserAttrs = lib.mapAttrs (_: pass: {
             password = pass;
+            acl = [ "readwrite #" ];
           }) config.rpi.services.mosquitto.extraUsers;
           allUsers = baseUsers // extraUserAttrs;
         in
@@ -65,6 +69,19 @@ in
           }
         ];
     };
+
+    # Restart mosquitto whenever its generated config files change.
+    # Without this, NixOS won't restart the service when ACL or
+    # password files are updated in place at their fixed /etc/ paths.
+    systemd.services.mosquitto.restartTriggers = [
+      mqttUser
+      mqttPassword
+      mqttClientPassword
+      (builtins.toJSON config.rpi.services.mosquitto.extraUsers)
+    ];
+
+    # mosquitto_pub / mosquitto_sub CLI tools for debugging.
+    environment.systemPackages = [ pkgs.mosquitto ];
 
     networking.firewall.allowedTCPPorts = [
       config.rpi.services.mosquitto.port
