@@ -48,6 +48,7 @@ nixos-pi/
 │   │   ├── avahi.nix            mDNS / .local discovery
 │   │   ├── docker.nix           Docker + docker-compose
 │   │   ├── mosquitto.nix        MQTT broker
+│   │   ├── nodejs-app.nix       Node.js app from a Git repository (example)
 │   │   ├── samba.nix            SMB file share
 │   │   ├── tailscale.nix        Tailscale VPN
 │   │   └── zigbee2mqtt.nix      Zigbee coordinator bridge
