@@ -130,7 +130,7 @@
     htop # Interactive process viewer
     curl # HTTP client
     wget # File downloader
-    nodejs # Node.js runtime
+    nodejs_24 # Node.js runtime
   ];
 
   # ---------------------------------------------------------
