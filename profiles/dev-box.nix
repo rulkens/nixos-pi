@@ -18,6 +18,14 @@
       # Zigbee coordinator bridge — translates between the Zigbee radio
       # and MQTT so that devices appear in Home Assistant and similar.
       zigbee2mqtt.enable = true;
+
+      # Docker container runtime + docker-compose.
+      # Run `docker ps` after boot to verify it is working.
+      # docker.enable = true;
+
+      # Tailscale VPN — run `sudo tailscale up` after first boot to
+      # authenticate and join your tailnet.
+      # tailscale.enable = true;
     };
 
     system = {
