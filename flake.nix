@@ -41,6 +41,7 @@
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
           (./profiles + "/${name}.nix")
           ./local-config.nix
+          { sdImage.compressImage = false; }
         ];
       };
 

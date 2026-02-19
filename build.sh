@@ -8,7 +8,7 @@
 #      configuration values and write config.json
 #   3. Builds the NixOS SD card image using the Determinate
 #      Systems Linux builder
-#   4. Decompresses the image to artifacts/
+#   4. Links the image into artifacts/
 #
 # Usage:
 #   ./build.sh              # builds "base" profile (default)
@@ -132,20 +132,19 @@ echo ""
 echo "  ✓ Build complete"
 
 # ---------------------------------------------------------
-# Step 5: Extract SD card image
+# Step 5: Copy SD card image
 # ---------------------------------------------------------
 echo ""
-echo "[5/5] Extracting SD card image..."
+echo "[5/5] Linking SD card image..."
 
-IMG_ZST=$(find -L "$ARTIFACTS_DIR/result-${PROFILE}/sd-image/" -name '*.img.zst' | head -1)
+IMG=$(find -L "$ARTIFACTS_DIR/result-${PROFILE}/sd-image/" -name '*.img' | head -1)
 
-if [ -z "$IMG_ZST" ]; then
-  echo "  ERROR: Could not find .img.zst in build output."
+if [ -z "$IMG" ]; then
+  echo "  ERROR: Could not find .img in build output."
   exit 1
 fi
 
-echo "  Decompressing image..."
-nix shell nixpkgs#zstd -c zstd -d "$IMG_ZST" -o "$ARTIFACTS_DIR/${PI_HOSTNAME}.img" --force
+ln -sf "$IMG" "$ARTIFACTS_DIR/${PI_HOSTNAME}.img"
 
 IMG_SIZE=$(du -h "$ARTIFACTS_DIR/${PI_HOSTNAME}.img" | awk '{print $1}')
 echo "  ✓ Image saved to artifacts/${PI_HOSTNAME}.img ($IMG_SIZE)"
