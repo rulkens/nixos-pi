@@ -8,8 +8,8 @@
     ../modules/mosquitto.nix
   ];
 
-  rpi.docker.enable = true;
-  rpi.tailscale.enable = true;
+  rpi.docker.enable = false;
+  rpi.tailscale.enable = false;
   rpi.samba.enable = true;
   rpi.mosquitto.enable = true;
 }
