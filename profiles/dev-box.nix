@@ -4,6 +4,9 @@
 
   rpi = {
     services = {
+      # mDNS — lets you reach the Pi as <hostname>.local on the local network.
+      avahi.enable = true;
+
       # SMB file share — exposes the user's home directory on the
       # local network as \\<hostname>\<username>.
       samba.enable = true;
